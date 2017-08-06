@@ -1,0 +1,29 @@
+version: "3"
+services:
+  dada:
+    image: dadamail
+    container_name: dada_dada
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - dada-home:/opt/dada
+      - dada-htdocs:/usr/local/apache2/htdocs
+
+  mysql:
+    image: mariadb
+    container_name: dada_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: s3crets4uc3
+      MYSQL_DATABASE: dada
+      MYSQL_USER: dada
+      MYSQL_PASSWORD: s4uc3s3cret
+    volumes:
+      - dada-mysql:/var/lib/mysql
+
+volumes:
+  dada-home:
+  dada-htdocs:
+  dada-mysql:        
+
