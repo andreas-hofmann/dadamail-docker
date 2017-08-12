@@ -26,13 +26,17 @@ WORKDIR $WDIR
 RUN pwd && curl -L -O https://netcologne.dl.sourceforge.net/project/dadamail/dada-10_7_0.tar.gz
 RUN curl -L -O https://raw.github.com/justingit/dada-mail/v10_7_0-stable_2017_07_05/uncompress_dada.cgi
 RUN ls -l
-RUN cd $WDIR && /usr/bin/perl -T $WDIR/uncompress_dada.cgi && rm uncompress_dada.cgi && cp -rv $WDIR/* $HTDOCS/
+RUN cd $WDIR && /usr/bin/perl -T $WDIR/uncompress_dada.cgi
 
 RUN echo '*/5 * * * * /usr/bin/curl --user-agent "Mozilla/5.0 (compatible;)" --silent --get --url http://localhost/dada/mail.cgi/_schedules/_all/_all/_silent/' > /var/spool/cron/crontabs/root 
 RUN mkdir -p $HTDOCS/dada_mail_support_files && chown -R daemon:daemon $HTDOCS && chmod 2755 $HTDOCS
 
 
 USER root
-CMD service cron start && httpd-foreground
+CMD if [ ! -d '/usr/local/apache2/htdocs/dada' ]; then cp -vr $WDIR/* $HTDOCS ; fi ; \
+    if [ ! -d '/usr/local/apache2/htdocs/dada/dada_mail_support_files' ]; then  \
+      mkdir -p $HTDOCS/dada_mail_support_files ; fi ; \
+    chown -R daemon:daemon $HTDOCS $DATA && chmod 2755 $HTDOCS && \
+    service cron start && httpd-foreground
 
 # http://localhost:8080/dada/installer/install.cgi
