@@ -2,11 +2,12 @@ FROM uniqrn/perl-fcgi
 MAINTAINER Paul Klumpp
 ENV HTDOCS /usr/local/apache2/htdocs
 ENV DATA /opt/dada
-WORKDIR $HTDOCS
+ENV WDIR /root/wdir
 VOLUME ["$DATA", "$HTDOCS"]
 
 RUN usermod -d $DATA daemon
 RUN mkdir -p $DATA && chown -R daemon:daemon $DATA && chmod 2755 $DATA
+RUN mkdir -p $WDIR 
 
 RUN apt-get update -y && apt-get upgrade -y && apt-get install -y apt-utils
 RUN apt-get install -y cron curl build-essential vim 
@@ -20,13 +21,16 @@ RUN cpanm -i Image::Resize WWW::StopForumSpam CSS::Inliner Bundle::DadaMail # th
 
 COPY httpd.conf /usr/local/apache2/conf/
 
+WORKDIR $WDIR
 #COPY ./dada-10_7_0.tar.gz ./
-ADD https://downloads.sourceforge.net/project/dadamail/dada-10_7_0.tar.gz?r=http%3A%2F%2Fdadamailproject.com%2Fsupport%2Fdocumentation-10_7_0%2Finstall_dada_mail.pod.html&ts=1501887836&use_mirror=netcologne ./dada-10_7_0.tar.gz
-ADD https://raw.github.com/justingit/dada-mail/v10_7_0-stable_2017_07_05/uncompress_dada.cgi ./
+RUN pwd && curl -L -O https://netcologne.dl.sourceforge.net/project/dadamail/dada-10_7_0.tar.gz
+RUN curl -L -O https://raw.github.com/justingit/dada-mail/v10_7_0-stable_2017_07_05/uncompress_dada.cgi
+RUN ls -l
+RUN cd $WDIR && /usr/bin/perl -T $WDIR/uncompress_dada.cgi && rm uncompress_dada.cgi && cp -rv $WDIR/* $HTDOCS/
 
-RUN chmod 0755 uncompress_dada.cgi && /usr/bin/perl -T uncompress_dada.cgi && rm uncompress_dada.cgi
 RUN echo '*/5 * * * * /usr/bin/curl --user-agent "Mozilla/5.0 (compatible;)" --silent --get --url http://localhost/dada/mail.cgi/_schedules/_all/_all/_silent/' > /var/spool/cron/crontabs/root 
 RUN mkdir -p $HTDOCS/dada_mail_support_files && chown -R daemon:daemon $HTDOCS && chmod 2755 $HTDOCS
+
 
 USER root
 CMD service cron start && httpd-foreground

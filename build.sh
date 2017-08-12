@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build --pull . -t dadamail
+docker build --pull . -t dadamail $*
