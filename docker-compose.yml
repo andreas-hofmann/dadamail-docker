@@ -5,14 +5,14 @@ services:
     container_name: dada_dada
     restart: always
     ports:
-      - "8080:80"
+      - "10083:80"
     volumes:
       - dada-home:/opt/dada
       - dada-htdocs:/usr/local/apache2/htdocs
 
   mysql:
     image: mariadb
-    container_name: dada_mysql
+    container_name: dada_mariadb
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: s3crets4uc3

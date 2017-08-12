@@ -3,6 +3,7 @@ MAINTAINER Paul Klumpp
 ENV HTDOCS /usr/local/apache2/htdocs
 ENV DATA /opt/dada
 WORKDIR $HTDOCS
+VOLUME ["$DATA", "$HTDOCS"]
 
 RUN usermod -d $DATA daemon
 RUN mkdir -p $DATA && chown -R daemon:daemon $DATA && chmod 2755 $DATA
@@ -26,7 +27,6 @@ ADD https://raw.github.com/justingit/dada-mail/v10_7_0-stable_2017_07_05/uncompr
 RUN chmod 0755 uncompress_dada.cgi && /usr/bin/perl -T uncompress_dada.cgi && rm uncompress_dada.cgi
 RUN echo '*/5 * * * * /usr/bin/curl --user-agent "Mozilla/5.0 (compatible;)" --silent --get --url http://localhost/dada/mail.cgi/_schedules/_all/_all/_silent/' > /var/spool/cron/crontabs/root 
 RUN mkdir -p $HTDOCS/dada_mail_support_files && chown -R daemon:daemon $HTDOCS && chmod 2755 $HTDOCS
-VOLUME ["$DATA", "$HTDOCS"]
 
 USER root
 CMD service cron start && httpd-foreground
