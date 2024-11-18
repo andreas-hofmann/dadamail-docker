@@ -1,2 +1,5 @@
 #!/bin/bash
-docker build --pull . -t dadamail $*
+
+which podman &> /dev/null && BUILD=podman || BUILD=docker
+
+$BUILD build --pull . -t ghcr.io/andreas-hofmann/dadamail $*

@@ -1,29 +1,44 @@
 version: "3"
 services:
   dada:
-    image: dadamail
+    image: ghcr.io/andreas-hofmann/dadamail
     container_name: dada_dada
     restart: always
     ports:
-      - "10083:80"
+      - "8080:80"
     volumes:
-      - dada-home:/opt/dada
-      - dada-htdocs:/usr/local/apache2/htdocs
+      - ./data/dada:/opt/dada
+    environment:
+      DADA_ROOT_PASSWORD: iamdroot # Change this!
+      DADA_URL: http://localhost:8080 # Adjust to your actually used URL. Include the protocol and port, if necessary.
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - database
 
-  mysql:
+  db:
     image: mariadb
     container_name: dada_mariadb
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: s3crets4uc3
-      MYSQL_DATABASE: dada
-      MYSQL_USER: dada
-      MYSQL_PASSWORD: s4uc3s3cret
+    ports:
+      - "3306"
     volumes:
-      - dada-mysql:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      database:
+        aliases:
+          - mysql
+    environment:
+      MARIADB_DATABASE: dada
+      MARIADB_USER: dada
+      MARIADB_PASSWORD: dada_dada
+      MARIADB_RANDOM_ROOT_PASSWORD: true
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
-volumes:
-  dada-home:
-  dada-htdocs:
-  dada-mysql:        
+networks:
+  database:
 

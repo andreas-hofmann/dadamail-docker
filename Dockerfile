@@ -1,42 +1,40 @@
-FROM uniqrn/perl-fcgi
-MAINTAINER Paul Klumpp
-ENV HTDOCS /usr/local/apache2/htdocs
+FROM docker.io/debian:12-slim
+LABEL maintainer "Andreas Hofmann"
+
+ENV HTDOCS /var/www/dada
+ENV HTSUPPORT /var/www/dada/dada_mail_support_files
 ENV DATA /opt/dada
-ENV WDIR /root/wdir
-VOLUME ["$DATA", "$HTDOCS"]
+ENV WDIR /root/working
 
-RUN usermod -d $DATA daemon
-RUN mkdir -p $DATA && chown -R daemon:daemon $DATA && chmod 2755 $DATA
-RUN mkdir -p $WDIR 
+VOLUME ["$DATA"]
 
-RUN apt-get update -y && apt-get upgrade -y && apt-get install -y apt-utils
-RUN apt-get install -y cron curl build-essential vim 
+RUN usermod -d $DATA www-data
 
+RUN apt-get update -y && apt-get upgrade -y
+RUN apt-get install -y --no-install-recommends cron curl apache2 sudo
 RUN apt-get install -y libxml-perl libsoap-lite-perl libdbd-mysql-perl libnet-dns-perl libhtml-tree-perl libio-socket-ssl-perl libcrypt-ssleay-perl libxmlrpc-lite-perl libgravatar-url-perl
-#ENV PERL_MM_USE_DEFAULT=1
-#ENV PERL_EXTUTILS_AUTOINSTALL="--defaultdeps"
-RUN curl -L https://cpanmin.us | perl - --force App::cpanminus
-RUN apt-get install -y pkg-config libgd-dev libcurl4-openssl-dev libxml2-dev
-RUN cpanm -i Image::Resize WWW::StopForumSpam CSS::Inliner Bundle::DadaMail # this failed so hard before.
 
-COPY httpd.conf /usr/local/apache2/conf/
+COPY dadamail.conf /etc/apache2/sites-available/
+RUN a2dissite 000-default
+RUN a2ensite dadamail
+RUN a2enmod cgi
 
+RUN mkdir -p $WDIR $DATA $HTDOCS $HTSUPPORT
 WORKDIR $WDIR
-#COPY ./dada-10_7_0.tar.gz ./
-RUN pwd && curl -L -O https://netcologne.dl.sourceforge.net/project/dadamail/dada-10_7_0.tar.gz
-RUN curl -L -O https://raw.github.com/justingit/dada-mail/v10_7_0-stable_2017_07_05/uncompress_dada.cgi
-RUN ls -l
-RUN cd $WDIR && /usr/bin/perl -T $WDIR/uncompress_dada.cgi
+RUN curl -L -O https://sourceforge.net/projects/dadamail/files/dada_mail-v11_22_0_stable_2023-09-18.tar.gz
+RUN tar xf dada_mail-v11_22_0_stable_2023-09-18.tar.gz
+RUN rm dada_mail-v11_22_0_stable_2023-09-18.tar.gz
+RUN mv dada/installer-disabled dada/installer
 
-RUN echo '*/5 * * * * /usr/bin/curl --user-agent "Mozilla/5.0 (compatible;)" --silent --get --url http://localhost/dada/mail.cgi/_schedules/_all/_all/_silent/' > /var/spool/cron/crontabs/root 
-RUN mkdir -p $HTDOCS/dada_mail_support_files && chown -R daemon:daemon $HTDOCS && chmod 2755 $HTDOCS
+RUN mv dada/* $HTDOCS
+RUN chown -R www-data:www-data $HTDOCS $DATA $HTSUPPORT
+RUN chmod  755 $HTDOCS/installer/install.cgi
+RUN chmod  755 $HTDOCS/mail.cgi
 
+RUN echo '*/5 * * * * /usr/bin/curl --user-agent "Mozilla/5.0 (compatible;)" --silent --get --url http://localhost/mail.cgi/_schedules/_all/_all/_silent/' > /var/spool/cron/crontabs/root 
+
+COPY entry.sh /
+RUN chmod 755 /entry.sh
 
 USER root
-CMD if [ ! -d '/usr/local/apache2/htdocs/dada' ]; then cp -vr $WDIR/* $HTDOCS ; fi ; \
-    if [ ! -d '/usr/local/apache2/htdocs/dada/dada_mail_support_files' ]; then  \
-      mkdir -p $HTDOCS/dada_mail_support_files ; fi ; \
-    chown -R daemon:daemon $HTDOCS $DATA && chmod 2755 $HTDOCS && \
-    service cron start && httpd-foreground
-
-# http://localhost:8080/dada/installer/install.cgi
+CMD /entry.sh
