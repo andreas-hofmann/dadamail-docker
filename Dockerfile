@@ -31,8 +31,6 @@ RUN chown -R www-data:www-data $HTDOCS $DATA $HTSUPPORT
 RUN chmod  755 $HTDOCS/installer/install.cgi
 RUN chmod  755 $HTDOCS/mail.cgi
 
-RUN echo '*/5 * * * * /usr/bin/curl --user-agent "Mozilla/5.0 (compatible;)" --silent --get --url http://localhost/mail.cgi/_schedules/_all/_all/_silent/' > /var/spool/cron/crontabs/root 
-
 COPY entry.sh /
 RUN chmod 755 /entry.sh
 

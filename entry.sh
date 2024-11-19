@@ -37,11 +37,15 @@ else
 		--wysiwyg_editor_install_tiny_mce \
 		--file_browser core5_filemanager && cd $HTDOCS && \
 			test -d installer && mv installer installer-disabled
+
 	if [ -d $HTDOCS/installer ]; then
 		echo "Installer still enabled. This should not happen."
  		rm -rf $DATA/.dada_files
 		exit 1
 	fi
 fi
+
+JOBS_FLAVOR=$(cat $DATA/.dada_files/.configs/.dada_config | awk  '/scheduled\_jobs\_flavor/ {print $3}' | cut -d \' -f 2)
+echo -e "*/5 * * * * /usr/bin/curl --user-agent \"Mozilla/5.0 (compatible;)\" --silent --get --url http://localhost/mail.cgi/${JOBS_FLAVOR}/_all/_all/_silent/" > /var/spool/cron/crontabs/root 
 
 cron && apachectl -D FOREGROUND
