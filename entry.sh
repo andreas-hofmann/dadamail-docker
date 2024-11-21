@@ -46,6 +46,7 @@ else
 fi
 
 JOBS_FLAVOR=$(cat $DATA/.dada_files/.configs/.dada_config | awk  '/scheduled\_jobs\_flavor/ {print $3}' | cut -d \' -f 2)
-echo -e "*/5 * * * * /usr/bin/curl --user-agent \"Mozilla/5.0 (compatible;)\" --silent --get --url http://localhost/mail.cgi/${JOBS_FLAVOR}/_all/_all/_silent/" > /var/spool/cron/crontabs/root 
+echo -e "*/5 * * * * /usr/bin/curl --user-agent \"Mozilla/5.0 (compatible;)\" --silent --get --url http://localhost/mail.cgi/${JOBS_FLAVOR}/_all/_all/_silent/" > /tmp/crontab
+crontab /tmp/crontab
 
 cron && apachectl -D FOREGROUND
