@@ -7,6 +7,8 @@ if [ -d $DATA/.dada_files ]; then
 	sleep 5
 	sudo -u www-data ./install.cgi \
 		--dada_files_loc $DATA \
+		--program_url $DADA_URL/mail.cgi \
+		--support_files_dir_url $DADA_URL/dada_mail_support_files/ \
 		--upgrading || exit 1cd $HTDOCS && \
 		cd $HTDOCS && test -d installer && mv installer installer-disabled
 else
