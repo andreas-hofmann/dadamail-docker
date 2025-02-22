@@ -4,7 +4,6 @@ chown -R www-data:www-data $DATA $HTDOCS
 cd $HTDOCS/installer
 
 if [ -d $DATA/.dada_files ]; then
-	sleep 5
 	sudo -u www-data ./install.cgi \
 		--dada_files_loc $DATA \
 		--program_url $DADA_URL/mail.cgi \
@@ -12,7 +11,6 @@ if [ -d $DATA/.dada_files ]; then
 		--upgrading || exit 1cd $HTDOCS && \
 		cd $HTDOCS && test -d installer && mv installer installer-disabled
 else
-	sleep 15
 	sudo -u www-data ./install.cgi \
 		--program_url $DADA_URL/mail.cgi \
 		--dada_root_pass $DADA_ROOT_PASSWORD \

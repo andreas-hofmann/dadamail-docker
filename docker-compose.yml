@@ -35,8 +35,10 @@ services:
       MARIADB_PASSWORD: dada_dada
       MARIADB_RANDOM_ROOT_PASSWORD: true
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
       retries: 10
 
 networks:
